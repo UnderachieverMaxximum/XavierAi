@@ -1,160 +1,171 @@
 import React, { useState } from 'react';
 import { 
-  Shield, ShieldCheck, ShieldAlert, Activity, 
-  Lock, Unlock, Eye, EyeOff, Zap, 
-  Search, RefreshCw, AlertTriangle, CheckCircle2
+  ShieldAlert, Activity, Lock, Eye, 
+  Cpu, Zap, AlertCircle, ShieldCheck, 
+  Fingerprint, RefreshCw, Trash2, Shield
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
+import { 
+  ResponsiveContainer, AreaChart, Area, 
+  XAxis, YAxis, CartesianGrid, Tooltip 
+} from 'recharts';
+
+const MOCK_SECURITY_DATA = [
+  { name: '00:00', threats: 2, activity: 40 },
+  { name: '04:00', threats: 1, activity: 30 },
+  { name: '08:00', threats: 5, activity: 80 },
+  { name: '12:00', threats: 3, activity: 60 },
+  { name: '16:00', threats: 8, activity: 95 },
+  { name: '20:00', threats: 4, activity: 70 },
+  { name: '23:59', threats: 2, activity: 50 },
+];
 
 const SecurityView: React.FC = () => {
   const [isScanning, setIsScanning] = useState(false);
-  const [scanProgress, setScanProgress] = useState(0);
-  const [threats, setThreats] = useState<number>(0);
-
-  const startScan = () => {
-    setIsScanning(true);
-    setScanProgress(0);
-    const interval = setInterval(() => {
-      setScanProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsScanning(false);
-          setThreats(Math.floor(Math.random() * 2));
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 50);
-  };
 
   return (
-    <div className="flex flex-col h-full bg-[#f4f1ea] paper-texture">
+    <div className="flex flex-col h-full bg-[#f4f1ea] paper-texture overflow-hidden">
       {/* Header - Flush */}
-      <div className="p-8 pb-4 flex items-end justify-between">
-        <div>
-          <h1 className="marker text-7xl text-gray-800 mb-2">SECURITY CENTER</h1>
-          <p className="shadows text-3xl text-gray-500 italic">"Xavier's watchful eye."</p>
-        </div>
-        <div className="flex gap-4">
-          <button 
-            onClick={startScan}
-            disabled={isScanning}
-            className={`marker-btn px-8 py-3 text-2xl flex items-center gap-3 ${isScanning ? 'bg-gray-400' : 'bg-red-600 hover:bg-red-700'}`}
-          >
-            <Zap size={24} className={isScanning ? 'animate-spin' : ''} />
-            {isScanning ? 'SCANNING...' : 'DEEP SCAN'}
-          </button>
-        </div>
+      <div className="p-6 border-b-4 border-black bg-white/50">
+        <h1 className="marker text-6xl text-gray-800 leading-none">SECURITY HUB</h1>
+        <p className="shadows text-2xl text-red-600 italic">"Xavier's shield is always active."</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
-        {/* Status Card - Flush */}
-        <div className="border-4 border-black bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <div className="flex items-center gap-8">
-            <div className={`w-24 h-24 rounded-full border-4 border-black flex items-center justify-center ${threats > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
-              {threats > 0 ? <ShieldAlert size={48} className="text-red-600" /> : <ShieldCheck size={48} className="text-green-600" />}
-            </div>
-            <div className="flex-1">
-              <h2 className="marker text-4xl mb-2">
-                {isScanning ? 'SCAN IN PROGRESS...' : threats > 0 ? 'THREATS DETECTED' : 'SYSTEM SECURE'}
-              </h2>
-              <div className="w-full bg-gray-100 h-6 border-2 border-black overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${scanProgress}%` }}
-                  className="h-full bg-red-600"
-                />
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+        {/* Quick Stats - Side by Side Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { label: 'Threats', val: 'ZERO', icon: ShieldCheck, color: 'text-green-600' },
+            { label: 'Vigilance', val: 'MAX', icon: Eye, color: 'text-red-600' },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white border-4 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-4">
+              <stat.icon size={32} className={stat.color} />
+              <div>
+                <p className="shadows text-lg text-gray-400 leading-none">{stat.label}</p>
+                <p className="marker text-3xl text-gray-800 leading-none">{stat.val}</p>
               </div>
-              <p className="shadows text-2xl text-gray-400 mt-2">
-                {isScanning ? `Analyzing neural patterns... ${scanProgress}%` : `Last scan: Just now. ${threats} issues found.`}
-              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Security Graphs - Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white border-4 border-black p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <h3 className="marker text-2xl mb-4 flex items-center gap-2">
+              <ShieldAlert size={20} className="text-red-600" />
+              THREAT VECTORS
+            </h3>
+            <div className="h-40 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={MOCK_SECURITY_DATA}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                  <XAxis dataKey="name" hide />
+                  <YAxis hide />
+                  <Tooltip contentStyle={{border: '2px solid black', fontFamily: 'Architects Daughter'}} />
+                  <Area type="monotone" dataKey="threats" stroke="#ef4444" strokeWidth={3} fill="#fee2e2" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div className="bg-white border-4 border-black p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <h3 className="marker text-2xl mb-4 flex items-center gap-2">
+              <Activity size={20} className="text-blue-600" />
+              NEURAL ACTIVITY
+            </h3>
+            <div className="h-40 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={MOCK_SECURITY_DATA}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                  <XAxis dataKey="name" hide />
+                  <YAxis hide />
+                  <Tooltip contentStyle={{border: '2px solid black', fontFamily: 'Architects Daughter'}} />
+                  <Area type="monotone" dataKey="activity" stroke="#3b82f6" strokeWidth={3} fill="#dbeafe" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Activity Monitor - Flush */}
-          <div className="border-4 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex items-center justify-between mb-6 border-b-2 border-black pb-4">
-              <div className="flex items-center gap-3">
-                <Activity size={24} className="text-red-600" />
-                <h3 className="marker text-2xl">ACTIVITY MONITOR</h3>
-              </div>
-              <span className="text-xs bg-black text-white px-2 py-1 uppercase tracking-tighter">Live</span>
-            </div>
-            <div className="space-y-4 font-mono text-sm">
-              <div className="flex items-center justify-between text-green-600">
-                <span>[04:12:01] - Encrypting /root/vault</span>
-                <CheckCircle2 size={16} />
-              </div>
-              <div className="flex items-center justify-between text-yellow-600">
-                <span>[04:12:05] - Port 8080 scan detected</span>
-                <AlertTriangle size={16} className="animate-pulse" />
-              </div>
-              <div className="flex items-center justify-between text-gray-400">
-                <span>[04:12:10] - Xavier: Analyzing traffic...</span>
-              </div>
-              <div className="flex items-center justify-between text-gray-400">
-                <span>[04:12:15] - System: Integrity check OK</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Defense Tools - Flush */}
-          <div className="border-4 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex items-center gap-3 mb-6 border-b-2 border-black pb-4">
-              <Shield size={24} className="text-blue-600" />
-              <h3 className="marker text-2xl">DEFENSE TOOLS</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-black hover:bg-black/5 transition-all">
-                <Lock size={32} className="mb-2" />
-                <span className="marker text-lg">ENCRYPT</span>
-              </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-black hover:bg-black/5 transition-all">
-                <RefreshCw size={32} className="mb-2" />
-                <span className="marker text-lg">REPAIR</span>
-              </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-black hover:bg-black/5 transition-all">
-                <Eye size={32} className="mb-2" />
-                <span className="marker text-lg">STEALTH</span>
-              </button>
-              <button className="flex flex-col items-center justify-center p-4 border-2 border-black hover:bg-black/5 transition-all">
-                <Search size={32} className="mb-2" />
-                <span className="marker text-lg">AUDIT</span>
-              </button>
-            </div>
-          </div>
+        {/* Defense Tools - Condensed Side by Side */}
+        <div className="grid grid-cols-2 gap-4">
+          <button className="flex items-center gap-3 p-4 bg-white border-4 border-black hover:bg-red-50 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1">
+            <Shield size={24} className="text-red-600" />
+            <span className="marker text-xl">DEEP SCAN</span>
+          </button>
+          <button className="flex items-center gap-3 p-4 bg-white border-4 border-black hover:bg-blue-50 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1">
+            <Lock size={24} className="text-blue-600" />
+            <span className="marker text-xl">ENCRYPT</span>
+          </button>
+          <button className="flex items-center gap-3 p-4 bg-white border-4 border-black hover:bg-green-50 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1">
+            <RefreshCw size={24} className="text-green-600" />
+            <span className="marker text-xl">REPAIR</span>
+          </button>
+          <button className="flex items-center gap-3 p-4 bg-red-600 text-white border-4 border-black hover:bg-red-700 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1">
+            <Zap size={24} />
+            <span className="marker text-xl uppercase">Optimize</span>
+          </button>
         </div>
 
-        {/* Real-time Monitoring - Flush */}
-        <div className="border-4 border-black bg-black text-green-400 p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] font-mono">
-          <div className="flex items-center gap-4 mb-6">
-            <Activity size={32} className="animate-pulse" />
-            <h3 className="marker text-3xl text-white">XAVIER SENTINEL</h3>
+        {/* Xavier's Security Note - Styled like launch screen */}
+        <section className="bg-black text-white p-6 border-4 border-black relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/20 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+          <div className="flex items-center gap-3 mb-4">
+            <BotIcon className="text-red-500" size={28} />
+            <h2 className="marker text-3xl">XAVIER'S LOG</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500 uppercase">CPU Load</p>
-              <p className="text-2xl">12.4%</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500 uppercase">Memory</p>
-              <p className="text-2xl">2.1 GB</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500 uppercase">Network</p>
-              <p className="text-2xl">0.5 MB/s</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500 uppercase">Uptime</p>
-              <p className="text-2xl">142:12:05</p>
-            </div>
+          <p className="hand-drawn text-2xl italic leading-tight mb-6">
+            "I've blocked 3 unauthorized access attempts today. Your digital perimeter is secure. I recommend a full purge of temporary cache files."
+          </p>
+          <button className="w-full marker-btn bg-white text-black hover:bg-gray-200 py-3 text-2xl border-2 border-black">
+            EXECUTE PURGE
+          </button>
+        </section>
+
+        {/* App Activity - Condensed */}
+        <section>
+          <h2 className="marker text-3xl text-gray-700 mb-4">RECENT EVENTS</h2>
+          <div className="space-y-2">
+            {[
+              { app: 'System', action: 'Memory Check', status: 'Secure' },
+              { app: 'Network', action: 'Packet Filter', status: 'Active' },
+            ].map((act, i) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <div className="flex items-center gap-3">
+                  <Fingerprint size={18} className="text-gray-400" />
+                  <div>
+                    <p className="marker text-lg leading-none">{act.app}</p>
+                    <p className="shadows text-sm text-gray-500 leading-none">{act.action}</p>
+                  </div>
+                </div>
+                <span className="marker text-sm text-green-600">{act.status}</span>
+              </div>
+            ))}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
 };
+
+const BotIcon = ({ className, size }: { className?: string, size?: number }) => (
+  <svg 
+    className={className} 
+    width={size || 24} 
+    height={size || 24} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+  >
+    <path d="M12 8V4H8" />
+    <rect width="16" height="12" x="4" y="8" rx="2" />
+    <path d="M2 14h2" />
+    <path d="M20 14h2" />
+    <path d="M15 13v2" />
+    <path d="M9 13v2" />
+  </svg>
+);
 
 export default SecurityView;

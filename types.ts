@@ -15,7 +15,6 @@ export enum FileManagerView {
   GRAPHS = 'GRAPHS',
   SECURITY = 'SECURITY',
   CHAT = 'CHAT',
-  OPTIMIZE = 'OPTIMIZE',
   LOGS = 'LOGS',
   MONITOR = 'MONITOR',
 }

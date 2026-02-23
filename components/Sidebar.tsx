@@ -24,7 +24,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: FileManagerView.GRAPHS, label: 'Graph Views', icon: BarChart2 },
     { id: FileManagerView.SECURITY, label: 'Security', icon: ShieldCheck },
     { id: FileManagerView.CHAT, label: 'Xavier Chat', icon: MessageSquare },
-    { id: FileManagerView.OPTIMIZE, label: 'Optimize', icon: Zap },
     { id: FileManagerView.LOGS, label: 'Log Center', icon: ScrollText },
     { id: FileManagerView.MONITOR, label: 'Monitor', icon: Activity },
   ];

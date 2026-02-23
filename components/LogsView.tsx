@@ -1,170 +1,178 @@
 import React, { useState } from 'react';
 import { 
-  FileText, Folder, ChevronRight, ChevronDown, 
-  Search, Download, Trash2, Zap, Clock,
-  Terminal, Shield, AlertCircle
+  ScrollText, Search, Filter, 
+  ChevronRight, ChevronDown, FileText, 
+  Terminal, AlertCircle, CheckCircle2, 
+  Clock, Download, Trash2, Bot
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { LogFolder, LogFile } from '../types';
 
-const MOCK_LOGS: (LogFolder | LogFile)[] = [
-  {
-    id: 'f1',
-    name: 'System Logs',
-    type: 'folder',
-    items: [
-      { id: 'l1', name: 'kernel_panic.log', type: 'file', size: '12 KB', date: '10m ago' },
-      { id: 'l2', name: 'boot_sequence.log', type: 'file', size: '45 KB', date: '1h ago' },
-    ]
-  },
-  {
-    id: 'f2',
-    name: 'Xavier AI Logs',
-    type: 'folder',
-    items: [
-      { id: 'l3', name: 'neural_ink_flow.log', type: 'file', size: '2.4 MB', date: 'Just now' },
-      { id: 'l4', name: 'security_audit.log', type: 'file', size: '156 KB', date: '5m ago' },
-    ]
-  },
-  { id: 'l5', name: 'full_system_dump.zip', type: 'file', size: '450 MB', date: 'Yesterday' },
-];
+const MOCK_LOGS: LogFolder = {
+  id: 'root',
+  name: 'System Logs',
+  type: 'folder',
+  items: [
+    {
+      id: 'kernel',
+      name: 'Kernel',
+      type: 'folder',
+      items: [
+        { id: 'k1', name: 'boot.log', type: 'file', size: '12 KB', date: '2024-03-20', content: '[0.000000] Linux version 6.5.0-26-generic\n[0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-6.5.0-26-generic\n[0.000000] KERNEL: Xavier Core Initialized' },
+        { id: 'k2', name: 'dmesg.log', type: 'file', size: '45 KB', date: '2024-03-20', content: '[1.234] usb 1-1: new high-speed USB device\n[1.456] input: Xavier HID Mouse' },
+      ]
+    },
+    {
+      id: 'apps',
+      name: 'Applications',
+      type: 'folder',
+      items: [
+        { id: 'a1', name: 'xavier_ai.log', type: 'file', size: '1.2 MB', date: '2024-03-21', content: '2024-03-21 10:00:01 INFO: Xavier AI started\n2024-03-21 10:00:05 DEBUG: Neural weights loaded' },
+        { id: 'a2', name: 'file_manager.log', type: 'file', size: '230 KB', date: '2024-03-21', content: '2024-03-21 10:05:12 ERROR: Failed to read /root/secret.txt' },
+      ]
+    },
+    { id: 'sys', name: 'syslog', type: 'file', size: '2.4 MB', date: '2024-03-21', content: 'Mar 21 10:15:01 xavier-os systemd[1]: Starting Periodic Command Scheduler...' },
+  ]
+};
 
 const LogsView: React.FC = () => {
-  const [expandedFolders, setExpandedFolders] = useState<string[]>(['f1', 'f2']);
-  const [selectedLog, setSelectedLog] = useState<string | null>(null);
+  const [selectedLog, setSelectedLog] = useState<LogFile | null>(null);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['root', 'kernel', 'apps']));
 
   const toggleFolder = (id: string) => {
-    setExpandedFolders(prev => 
-      prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
-    );
+    const newSet = new Set(expandedFolders);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setExpandedFolders(newSet);
+  };
+
+  const renderTree = (item: LogFolder | LogFile, depth = 0) => {
+    if (item.type === 'folder') {
+      const isExpanded = expandedFolders.has(item.id);
+      return (
+        <div key={item.id} className="select-none">
+          <button 
+            onClick={() => toggleFolder(item.id)}
+            className="w-full flex items-center gap-2 py-2 px-2 hover:bg-red-600/10 transition-colors group"
+            style={{ paddingLeft: `${depth * 1.5 + 0.5}rem` }}
+          >
+            {isExpanded ? <ChevronDown size={18} className="text-red-600" /> : <ChevronRight size={18} className="text-gray-400" />}
+            <span className="marker text-xl text-gray-800">{item.name}</span>
+          </button>
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                {item.items.map(child => renderTree(child, depth + 1))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      );
+    } else {
+      const isSelected = selectedLog?.id === item.id;
+      return (
+        <button 
+          key={item.id}
+          onClick={() => setSelectedLog(item)}
+          className={`w-full flex items-center gap-2 py-2 px-2 transition-all ${
+            isSelected ? 'bg-red-600 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'hover:bg-black/5'
+          }`}
+          style={{ paddingLeft: `${depth * 1.5 + 0.5}rem` }}
+        >
+          <FileText size={16} className={isSelected ? 'text-white' : 'text-blue-600'} />
+          <span className="marker text-xl truncate">{item.name}</span>
+        </button>
+      );
+    }
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#121212] text-white overflow-hidden">
+    <div className="flex flex-col h-full bg-[#f4f1ea] paper-texture overflow-hidden">
       {/* Header - Flush */}
-      <div className="p-8 pb-4 flex items-end justify-between bg-black/40 backdrop-blur-md border-b border-white/10">
+      <div className="p-6 border-b-4 border-black bg-white/50 flex items-center justify-between">
         <div>
-          <h1 className="marker text-7xl text-white mb-2">LOG CENTER</h1>
-          <p className="shadows text-3xl text-gray-500 italic">"The paper trail of the machine."</p>
+          <h1 className="marker text-6xl text-gray-800 leading-none">LOG CENTER</h1>
+          <p className="shadows text-2xl text-gray-500 italic">"Every bit accounted for."</p>
         </div>
-        <div className="flex gap-4">
-          <button className="marker-btn bg-red-600 text-white hover:bg-red-700 px-8 py-3 text-2xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            ZIP ALL
+        <div className="flex gap-2">
+          <button className="p-3 border-4 border-black bg-white hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1">
+            <Download size={24} />
           </button>
         </div>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
         {/* Log Tree - Flush Sidebar */}
-        <div className="w-1/3 border-r border-white/10 overflow-y-auto bg-black/20 custom-scrollbar">
-          <div className="p-4 border-b border-white/10">
-            <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full">
-              <Search size={20} className="text-gray-500" />
-              <input type="text" placeholder="Search logs..." className="bg-transparent border-none outline-none marker text-xl w-full text-white" />
-            </div>
-          </div>
-          
-          <div className="p-4 space-y-2">
-            {MOCK_LOGS.map((item) => (
-              <div key={item.id}>
-                {item.type === 'folder' ? (
-                  <div>
-                    <button 
-                      onClick={() => toggleFolder(item.id)}
-                      className="w-full flex items-center gap-3 p-4 hover:bg-white/5 transition-colors border-b border-white/5 rounded-xl"
-                    >
-                      {expandedFolders.includes(item.id) ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
-                      <Folder size={24} className="text-yellow-500" />
-                      <span className="marker text-2xl">{item.name}</span>
-                    </button>
-                    <AnimatePresence>
-                      {expandedFolders.includes(item.id) && (
-                        <motion.div 
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden ml-8 border-l border-white/10"
-                        >
-                          {item.items.map(file => (
-                            <button 
-                              key={file.id}
-                              onClick={() => setSelectedLog(file.id)}
-                              className={`w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors rounded-xl ${selectedLog === file.id ? 'bg-red-600/20' : ''}`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <FileText size={20} className="text-gray-400" />
-                                <span className="marker text-xl">{file.name}</span>
-                              </div>
-                              {file.type === 'file' && <span className="shadows text-lg text-gray-500">{file.size}</span>}
-                            </button>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ) : (
-                  <button 
-                    onClick={() => setSelectedLog(item.id)}
-                    className={`w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-b border-white/5 rounded-xl ${selectedLog === item.id ? 'bg-red-600/20' : ''}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Zap size={24} className="text-blue-500" />
-                      <span className="marker text-2xl">{item.name}</span>
-                    </div>
-                    {item.type === 'file' && <span className="shadows text-lg text-gray-500">{item.size}</span>}
-                  </button>
-                )}
-              </div>
-            ))}
+        <div className="w-1/3 border-r-4 border-black bg-white/30 overflow-y-auto custom-scrollbar hidden sm:block">
+          <div className="p-2">
+            {renderTree(MOCK_LOGS)}
           </div>
         </div>
 
         {/* Log Viewer - Flush Content */}
-        <div className="flex-1 flex flex-col bg-black">
+        <div className="flex-1 flex flex-col overflow-hidden bg-white/20">
           {selectedLog ? (
             <>
-              <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/5">
+              <div className="p-4 border-b-4 border-black bg-white/50 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <Terminal size={28} className="text-red-500" />
-                  <h2 className="marker text-3xl">VIEWER: {selectedLog}</h2>
+                  <div className="w-12 h-12 bg-red-600 border-2 border-black flex items-center justify-center text-white">
+                    <Terminal size={24} />
+                  </div>
+                  <div>
+                    <h2 className="marker text-2xl text-gray-800 leading-none">{selectedLog.name}</h2>
+                    <p className="shadows text-lg text-gray-400">{selectedLog.size} • {selectedLog.date}</p>
+                  </div>
                 </div>
-                <div className="flex gap-4">
-                  <button className="p-2 hover:bg-white/10 border border-white/10 transition-all rounded-lg"><Download size={24} /></button>
-                  <button className="p-2 hover:bg-white/10 border border-white/10 transition-all text-red-500 rounded-lg"><Trash2 size={24} /></button>
+                <div className="flex gap-2">
+                  <button className="p-2 border-2 border-black hover:bg-black hover:text-white transition-all"><Search size={18} /></button>
+                  <button className="p-2 border-2 border-black hover:bg-red-600 hover:text-white transition-all"><Trash2 size={18} /></button>
                 </div>
               </div>
-              <div className="flex-1 p-8 font-mono text-lg overflow-y-auto custom-scrollbar bg-black text-green-500 selection:bg-green-900 selection:text-white">
-                <div className="space-y-2">
-                  <p className="opacity-50">[09:24:11] XAVIER_CORE: Initializing neural ink flow...</p>
-                  <p className="opacity-50">[09:24:12] SYSTEM: Kernel integrity check PASSED.</p>
-                  <p className="text-red-400">[09:24:15] SECURITY: Blocked unauthorized access to /root/secrets.</p>
-                  <p className="opacity-50">[09:24:20] XAVIER_CORE: Optimization cycle 42 started.</p>
-                  <p className="animate-pulse">_</p>
+              <div className="flex-1 overflow-auto p-6 font-mono text-sm bg-black text-green-400 selection:bg-green-900 selection:text-white custom-scrollbar">
+                <div className="max-w-full overflow-x-auto whitespace-pre">
+                  {selectedLog.content}
                 </div>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-[radial-gradient(#1a1a1a_1px,transparent_1px)] bg-[length:20px_20px]">
-              <div className="w-32 h-32 bg-white/5 border-4 border-white/10 border-dashed rounded-full flex items-center justify-center mb-8">
-                <Shield size={64} className="text-white/10" />
+            <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+              <div className="w-32 h-32 bg-white border-4 border-black flex items-center justify-center mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <ScrollText size={64} className="text-gray-300" />
               </div>
-              <h2 className="marker text-4xl text-gray-600 mb-4">NO LOG SELECTED</h2>
-              <p className="shadows text-2xl text-gray-600 max-w-md">
-                Select a room from the left to inspect Xavier's digital footprint.
+              <h2 className="marker text-4xl text-gray-800 mb-4">NO LOG SELECTED</h2>
+              <p className="shadows text-2xl text-gray-400 italic max-w-sm">
+                "Select a file from the tree to inspect the system's neural activity."
               </p>
+              
+              {/* Mobile Tree View - Only visible on small screens */}
+              <div className="mt-12 w-full sm:hidden border-t-4 border-black pt-8">
+                <h3 className="marker text-3xl text-gray-800 mb-4">BROWSE LOGS</h3>
+                <div className="text-left bg-white/50 border-4 border-black p-4">
+                  {renderTree(MOCK_LOGS)}
+                </div>
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Real-time Ticker Footer - Flush */}
-      <div className="h-16 bg-black text-white flex items-center px-8 gap-8 overflow-hidden border-t border-white/10">
-        <div className="flex items-center gap-2 shrink-0">
-          <Clock size={20} className="text-red-600" />
-          <span className="marker text-xl">LIVE STREAM:</span>
+      {/* Footer - Flush */}
+      <div className="h-12 border-t-4 border-black bg-black text-white px-6 flex items-center justify-between z-10">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="shadows text-lg uppercase tracking-widest">System Healthy</span>
+          </div>
+          <span className="shadows text-lg text-gray-500 uppercase tracking-widest hidden md:inline">Xavier Core v2.5</span>
         </div>
-        <div className="flex-1 whitespace-nowrap animate-marquee marker text-xl text-green-500">
-          [03:55:36] - SECURITY ALERT: PORT 8080 SCAN DETECTED - [03:55:37] - XAVIER: ANALYZING PACKET SIGNATURES - [03:55:40] - SYSTEM: CACHE PURGE RECOMMENDED
+        <div className="flex items-center gap-4">
+          <Clock size={16} className="text-gray-500" />
+          <span className="marker text-xl">05:00:44 AM</span>
         </div>
       </div>
     </div>

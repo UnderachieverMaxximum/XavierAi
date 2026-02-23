@@ -29,7 +29,6 @@ const FileManagerPage: React.FC<FileManagerPageProps> = ({ onBack }) => {
       case FileManagerView.GRAPHS: return <GraphsView />;
       case FileManagerView.SECURITY: return <SecurityView />;
       case FileManagerView.CHAT: return <ChatView />;
-      case FileManagerView.OPTIMIZE: return <OptimizeView />;
       case FileManagerView.LOGS: return <LogsView />;
       case FileManagerView.MONITOR: return <MonitorView />;
       default: return <ExplorerView />;

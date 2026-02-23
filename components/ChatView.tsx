@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Send, Bot, User, Paperclip, 
-  MoreHorizontal, Shield, Zap, AlertCircle
+  MoreHorizontal, Shield, Zap, AlertCircle,
+  Smile, Mic
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -38,22 +39,22 @@ const ChatView: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#121212] text-white overflow-hidden">
+    <div className="flex flex-col h-full bg-[#f4f1ea] paper-texture overflow-hidden">
       {/* Chat Header - Flush */}
-      <div className="p-6 border-b border-white/10 bg-black/40 backdrop-blur-md flex items-center justify-between z-10">
+      <div className="p-6 border-b-4 border-black bg-white/50 flex items-center justify-between z-10">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-red-600 border border-white/20 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(220,38,38,0.3)]">
-            <Bot size={28} />
+          <div className="w-16 h-16 bg-red-600 border-4 border-black flex items-center justify-center text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <Bot size={32} />
           </div>
           <div>
-            <h1 className="marker text-3xl text-white">XAVIER CORE</h1>
-            <div className="flex items-center gap-2 text-green-500 shadows text-lg">
-              <Shield size={14} />
+            <h1 className="marker text-4xl text-gray-800 leading-none uppercase">XAVIER CORE</h1>
+            <div className="flex items-center gap-2 text-red-600 shadows text-xl">
+              <Shield size={16} />
               <span>ACTIVE DEFENSE</span>
             </div>
           </div>
         </div>
-        <button className="p-3 hover:bg-white/10 rounded-full transition-all">
+        <button className="p-3 border-4 border-black bg-white hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1">
           <MoreHorizontal size={24} />
         </button>
       </div>
@@ -61,7 +62,7 @@ const ChatView: React.FC = () => {
       {/* Messages Area - Flush */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[radial-gradient(#1a1a1a_1px,transparent_1px)] bg-[length:20px_20px]"
+        className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar bg-white/10"
       >
         <AnimatePresence initial={false}>
           {messages.map((msg) => (
@@ -71,13 +72,13 @@ const ChatView: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`max-w-[85%] flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`w-10 h-10 border border-white/10 flex items-center justify-center shrink-0 rounded-full ${msg.sender === 'user' ? 'bg-white/10' : 'bg-red-600 text-white'}`}>
-                  {msg.sender === 'user' ? <User size={20} /> : <Bot size={20} />}
+              <div className={`max-w-[85%] flex gap-4 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`w-12 h-12 border-4 border-black flex items-center justify-center shrink-0 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${msg.sender === 'user' ? 'bg-white' : 'bg-red-600 text-white'}`}>
+                  {msg.sender === 'user' ? <User size={24} /> : <Bot size={24} />}
                 </div>
-                <div className={`relative p-4 border border-white/10 rounded-2xl ${msg.sender === 'user' ? 'bg-blue-600/20' : 'bg-white/5 backdrop-blur-sm'}`}>
-                  <p className="hand-drawn text-xl leading-relaxed text-gray-100">{msg.text}</p>
-                  <span className="block mt-2 shadows text-sm text-gray-500 text-right">{msg.time}</span>
+                <div className={`relative p-6 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] ${msg.sender === 'user' ? 'bg-blue-100' : 'bg-white'}`}>
+                  <p className="hand-drawn text-2xl leading-tight text-gray-800">{msg.text}</p>
+                  <span className="block mt-4 shadows text-lg text-gray-500 text-right uppercase tracking-widest">{msg.time}</span>
                 </div>
               </div>
             </motion.div>
@@ -86,9 +87,11 @@ const ChatView: React.FC = () => {
       </div>
 
       {/* Input Area - Flush */}
-      <div className="p-6 border-t border-white/10 bg-black/40 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <button className="p-3 hover:bg-white/10 rounded-full transition-all text-gray-400"><Paperclip size={20} /></button>
+      <div className="p-6 border-t-4 border-black bg-white/50">
+        <div className="flex items-center gap-4">
+          <button className="p-3 border-4 border-black bg-white hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1">
+            <Paperclip size={24} />
+          </button>
           
           <div className="flex-1 relative">
             <input 
@@ -96,32 +99,33 @@ const ChatView: React.FC = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Command Xavier..."
-              className="w-full bg-white/5 border border-white/10 p-3 rounded-full marker text-xl outline-none focus:border-red-600/50 transition-all"
+              placeholder="COMMAND XAVIER..."
+              className="w-full bg-white border-4 border-black p-4 marker text-2xl outline-none focus:bg-gray-50 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
             />
           </div>
 
           <button 
             onClick={handleSend}
-            className="bg-red-600 text-white p-3 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:bg-red-700 transition-all"
+            className="p-4 bg-red-600 text-white border-4 border-black hover:bg-red-700 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1"
           >
-            <Send size={24} />
+            <Send size={28} />
           </button>
         </div>
 
         {/* Suggested Commands */}
-        <div className="mt-4 flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+        <div className="mt-6 flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
           {[
-            { icon: Shield, label: "Security Status" },
-            { icon: Zap, label: "Optimize Storage" },
-            { icon: AlertCircle, label: "Recent Threats" }
+            { icon: Shield, label: "SECURITY STATUS" },
+            { icon: Zap, label: "OPTIMIZE STORAGE" },
+            { icon: AlertCircle, label: "RECENT THREATS" },
+            { icon: Mic, label: "VOICE COMMAND" }
           ].map((cmd, i) => (
             <button 
               key={i}
               onClick={() => setInput(cmd.label)}
-              className="flex items-center gap-2 px-4 py-1.5 border border-white/10 rounded-full marker text-lg whitespace-nowrap hover:bg-white/10 transition-all text-gray-300"
+              className="flex items-center gap-2 px-6 py-2 border-4 border-black bg-white marker text-xl whitespace-nowrap hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1"
             >
-              <cmd.icon size={16} />
+              <cmd.icon size={18} />
               {cmd.label}
             </button>
           ))}
