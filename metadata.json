@@ -1,0 +1,7 @@
+{
+  "name": "Xavier: Digital Assistant",
+  "description": "A unique, hand-drawn digital assistant powered by Gemini Live API for real-time voice interaction.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
